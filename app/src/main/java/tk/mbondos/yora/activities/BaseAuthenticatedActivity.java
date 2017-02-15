@@ -6,7 +6,7 @@ import android.os.Bundle;
 
 public abstract class BaseAuthenticatedActivity extends BaseActivity {
     @Override
-    protected final void onCreate (Bundle savedState) {
+    protected final void onCreate(Bundle savedState) {
         super.onCreate(savedState);
         if (!application.getAuth().getUser().isLoggedIn()) {
             startActivity(new Intent(this, LoginActivity.class));
@@ -17,5 +17,6 @@ public abstract class BaseAuthenticatedActivity extends BaseActivity {
         onYoraCreate(savedState);
 
     }
+
     protected abstract void onYoraCreate(Bundle savedState);
 }

@@ -1,7 +1,6 @@
 package tk.mbondos.yora.activities;
 
 
-
 import android.animation.Animator;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
@@ -24,17 +23,20 @@ public abstract class BaseActivity extends AppCompatActivity {
 
         application = (YoraApplication) getApplication();
     }
+
     @Override
     public void setContentView(@LayoutRes int layoutResId) {
         super.setContentView(layoutResId);
 
         toolbar = (Toolbar) findViewById(R.id.include_toolbar);
 
-        if(toolbar != null)
+        if (toolbar != null)
             setSupportActionBar(toolbar);
     }
+
     public void fadeOut(final FadeOutListener listener) {
         View rootView = findViewById(android.R.id.content);
+        //noinspection ConstantConditions
         rootView.animate()
                 .alpha(0)
                 .setListener(new Animator.AnimatorListener() {
@@ -68,15 +70,19 @@ public abstract class BaseActivity extends AppCompatActivity {
 
         overridePendingTransition(0, 0);
         View rootView = findViewById(android.R.id.content);
+        //noinspection ConstantConditions
         rootView.setAlpha(0);
         rootView.animate().alpha(1).setDuration(450).start();
     }
+
     public Toolbar getToolbar() {
         return toolbar;
     }
+
     public YoraApplication getYoraApplication() {
         return application;
     }
+
     public interface FadeOutListener {
         void onFadeOutEnd();
     }

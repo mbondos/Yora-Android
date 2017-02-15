@@ -1,6 +1,7 @@
 package tk.mbondos.yora.fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,9 +44,16 @@ public class LoginFragment extends BaseFragment implements View.OnClickListener 
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        callbacks = (Callbacks) activity;
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        Activity activity;
+        if (context instanceof Activity) {
+            activity = (Activity) context;
+            callbacks = (Callbacks) activity;
+        } else
+            throw new RuntimeException("Context not instanceof Activity in onAttach method in LoginFragment");
+
+
     }
 
     public interface Callbacks {
