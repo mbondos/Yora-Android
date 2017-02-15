@@ -17,7 +17,7 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener,
     private View loginButton;
     private View registerButton;
     private View facebookLoginButton;
-    private  View googleLoginButton;
+    private View googleLoginButton;
 
 
     @Override
