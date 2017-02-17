@@ -1,6 +1,8 @@
 package tk.mbondos.yora.activities;
 
+import android.app.Dialog;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
@@ -16,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.soundcloud.android.crop.Crop;
+import com.squareup.otto.Subscribe;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,6 +27,7 @@ import java.util.List;
 import tk.mbondos.yora.R;
 import tk.mbondos.yora.dialogs.ChangePasswordDialog;
 import tk.mbondos.yora.infrastructure.User;
+import tk.mbondos.yora.services.Account;
 import tk.mbondos.yora.views.MainNavDrawer;
 
 /**
@@ -38,6 +42,8 @@ public class ProfileActivity extends BaseAuthenticatedActivity implements View.O
 
     private static final String BUNDLE_STATE = "BUNDLE_STATE";
 
+    private static boolean isProgressBarVisible;
+
     private int currentState;
     private EditText displayNameText;
     private EditText emailText;
@@ -46,6 +52,7 @@ public class ProfileActivity extends BaseAuthenticatedActivity implements View.O
     private ImageView avatarView;
     private View avatarProgressFrame;
     private File tempOutputFile;
+    private Dialog progressDialog;
 
     @Override
     protected void onYoraCreate(Bundle savedState) {
@@ -79,6 +86,9 @@ public class ProfileActivity extends BaseAuthenticatedActivity implements View.O
             changeState(STATE_VIEWING);
         } else
             changeState(savedState.getInt(BUNDLE_STATE, currentState));
+
+        if (isProgressBarVisible)
+            setProgressBarVisible(true);
     }
     @Override
     public void onSaveInstanceState(Bundle savedState) {
@@ -114,12 +124,12 @@ public class ProfileActivity extends BaseAuthenticatedActivity implements View.O
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-       /*
-       if (requestCode != RESULT_OK) {
+
+       if (resultCode != RESULT_OK) {
             tempOutputFile.delete();
             return;
-        }
-        */
+       }
+
         if (requestCode == REQUEST_SELECT_IMAGE) {
             Uri outputFile;
             Uri tempFileUri = Uri.fromFile(tempOutputFile);
@@ -134,12 +144,40 @@ public class ProfileActivity extends BaseAuthenticatedActivity implements View.O
                     .output(tempFileUri)
                     .start(this);
         } else if (requestCode == Crop.REQUEST_CROP) {
-            // TODO: 16.02.2017 send tempfileuri to server as new avatar
-            avatarView.setImageResource(0);
-            avatarView.setImageURI(Uri.fromFile(tempOutputFile));
+            avatarProgressFrame.setVisibility(View.VISIBLE);
+            bus.post(new Account.ChangeAvatarRequest(Uri.fromFile(tempOutputFile)));
+
         }
     }
+    @Subscribe
+    public void onAvatarUpdated(Account.ChangeAvatarResponse response) {
+        avatarProgressFrame.setVisibility(View.GONE);
+        if (!response.didSucceed())
+            response.showErrorToast(this);
+    }
+    @Subscribe
+    public void onProfileUpdated(Account.UpdateProfileResponse response) {
+        if (!response.didSucceed()) {
+            response.showErrorToast(this);
+            changeState(STATE_EDITING);
+        }
+        displayNameText.setError(response.getPropertyError("displayName"));
+        emailText.setError(response.getPropertyError("email"));
+        setProgressBarVisible(false);
+    }
 
+    private void setProgressBarVisible(boolean visible) {
+        if (visible) {
+            progressDialog = new ProgressDialog.Builder(this)
+                    .setTitle("Updating Profile")
+                    .setCancelable(false)
+                    .show();
+        } else if (progressDialog != null) {
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
+        isProgressBarVisible = visible;
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_profile, menu);
@@ -207,11 +245,11 @@ public class ProfileActivity extends BaseAuthenticatedActivity implements View.O
             int itemId = item.getItemId();
 
             if (itemId == R.id.activity_profile_edit_menuDone) {
-                // TODO: 16.02.2017 send request to update display name and email
-                User user = application.getAuth().getUser();
-                user.setDisplayName(displayNameText.getText().toString());
-                user.setEmail(emailText.getText().toString());
+                setProgressBarVisible(true);
                 changeState(STATE_VIEWING);
+                bus.post(new Account.UpdateProfileRequest(
+                        displayNameText.getText().toString(),
+                        emailText.getText().toString()));
                 return true;
             }
             return false;
