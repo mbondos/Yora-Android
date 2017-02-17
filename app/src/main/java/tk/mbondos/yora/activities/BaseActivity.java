@@ -36,6 +36,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         bus.unregister(this);
+        if (navDrawer != null)
+            navDrawer.destroy();
     }
 
     @Override

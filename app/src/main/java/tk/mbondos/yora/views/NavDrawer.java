@@ -44,7 +44,14 @@ public class NavDrawer {
                 setOpen(!isOpen());
             }
         });
+
+        activity.getYoraApplication().getBus().register(this);
     }
+
+    public void destroy() {
+        activity.getYoraApplication().getBus().unregister(this);
+    }
+
     public void addItem(NavDrawerItem item) {
         items.add(item);
         item.navDrawer = this;
