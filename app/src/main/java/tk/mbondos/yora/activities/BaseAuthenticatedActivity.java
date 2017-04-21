@@ -17,7 +17,6 @@ public abstract class BaseAuthenticatedActivity extends BaseActivity {
                 startActivity(new Intent(this, LoginActivity.class));
             }
 
-            //startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }

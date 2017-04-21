@@ -11,6 +11,7 @@ import android.widget.Toast;
 import com.squareup.otto.Subscribe;
 
 import tk.mbondos.yora.R;
+import tk.mbondos.yora.activities.BaseActivity;
 import tk.mbondos.yora.services.Account;
 
 /**

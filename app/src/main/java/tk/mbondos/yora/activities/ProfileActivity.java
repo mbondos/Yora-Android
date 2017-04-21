@@ -30,9 +30,7 @@ import tk.mbondos.yora.infrastructure.User;
 import tk.mbondos.yora.services.Account;
 import tk.mbondos.yora.views.MainNavDrawer;
 
-/**
- * Created by maksy on 15.02.2017.
- */
+
 
 public class ProfileActivity extends BaseAuthenticatedActivity implements View.OnClickListener {
     private static final int REQUEST_SELECT_IMAGE = 100;

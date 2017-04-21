@@ -12,32 +12,71 @@ import android.view.View;
 import com.squareup.otto.Bus;
 
 import tk.mbondos.yora.R;
+import tk.mbondos.yora.infrastructure.ActionScheduler;
 import tk.mbondos.yora.infrastructure.YoraApplication;
 import tk.mbondos.yora.views.NavDrawer;
 
 public abstract class BaseActivity extends AppCompatActivity {
+    private boolean isRegisteredWithBus;
+
     protected YoraApplication application;
     protected Toolbar toolbar;
     protected NavDrawer navDrawer;
     protected boolean isTablet;
     protected Bus bus;
+    protected ActionScheduler scheduler;
 
     @Override
     protected void onCreate(Bundle savedState) {
         super.onCreate(savedState);
         application = (YoraApplication) getApplication();
         bus= application.getBus();
+        scheduler = new ActionScheduler(application);
+
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         isTablet = (metrics.widthPixels / metrics.density) >= 600;
 
         bus.register(this);
+        isRegisteredWithBus = true;
     }
+
+    public ActionScheduler getScheduler() {
+        return scheduler;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        scheduler.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        scheduler.onPause();
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        bus.unregister(this);
+
+        if (isRegisteredWithBus) {
+            bus.unregister(this);
+            isRegisteredWithBus = false;
+        }
         if (navDrawer != null)
             navDrawer.destroy();
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+
+        if (isRegisteredWithBus) {
+            bus.unregister(this);
+            isRegisteredWithBus = false;
+        }
+
     }
 
     @Override
